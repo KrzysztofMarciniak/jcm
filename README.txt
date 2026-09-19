@@ -56,9 +56,8 @@ Memory:
 I/O:
 
 ```
-(↑)       ; read a number from stdin
-(↓ V)     ; print a number in decimal
-(print V) ; convert a number to one output character
+(↑)      ; read a decimal number from stdin
+(↓ V)    ; print a number or string
 ```
 
 # VALUES
@@ -88,6 +87,13 @@ Comments begin with `;`:
 ; comment
 ```
 
+Strings use `'` and may contain escaped characters such as `\n`:
+
+```
+(↓ 'hello world')
+(↓ 'line one\nline two')
+```
+
 Expressions may be nested arbitrarily.
 
 # SEMANTICS
@@ -104,10 +110,7 @@ Expressions may be nested arbitrarily.
 
 `↑` reads a decimal number from stdin.
 
-`↓` writes a number in decimal form.
-
-`print` converts a numeric value to one byte/character using `putchar`.
-For example, `(↓ 99)` prints `99`, while `(print 99)` prints `c`.
+`↓` prints either a number or a string literal.
 
 Comparison operations return `0` or `1`.
 
@@ -116,29 +119,15 @@ Arithmetic operates on machine values.
 # COMPUTATION
 
 JCM provides conditional evaluation, functions, recursion, mutable
-memory, arithmetic, and comparison.
+memory, arithmetic, comparison, and string output.
 
 These mechanisms provide general computation.
-
-Higher-level operations such as loops, NAND, NOR, and XOR can be
-defined using the core language.
 
 # EXAMPLE
 
 ```
-; Hello World
-(print 72)
-(print 101)
-(print 108)
-(print 108)
-(print 111)
-(print 32)
-(print 87)
-(print 111)
-(print 114)
-(print 108)
-(print 100)
-(print 10)
+(↓ 'Hello, world!')
+(↓ 10)
 ```
 
 # RUNNING EXAMPLES
@@ -153,12 +142,9 @@ make
 printf '99\n' | ./jcm --eval examples/input-check.jcm
 ```
 
-The first example prints "Hello World". The factorial example prints
-`120`. The memory demo prints `12`. The input example prints `even? 0`
-for input `99`, and `even? 1` for input `100`.
-
-These examples collectively exercise the full language surface: logic,
-comparison, arithmetic, control flow, functions, binding, memory, and I/O.
+The first example prints `Hello, world!`. The factorial example prints
+`120`. The memory demo prints `12`. The input example prints the evenness
+check for the supplied number.
 
 # FILES
 

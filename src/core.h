@@ -3,6 +3,17 @@
 
 #include <string.h>
 
+/*
+ * JCM core language definition.
+ *
+ * Reference implementation:
+ *     C89
+ *
+ * Target:
+ *     x86_64 Linux
+ */
+
+/* Categories */
 enum JCMCategory {
     JCM_LOGIC,
     JCM_COMPARISON,
@@ -14,15 +25,18 @@ enum JCMCategory {
     JCM_IO
 };
 
+/* Form kinds */
 enum JCMFormKind {
     JCM_PRIMITIVE,
     JCM_SPECIAL_FORM
 };
 
+/* Value kinds */
 enum JCMValueKind {
     JCM_VALUE_NUMBER,
     JCM_VALUE_BOOLEAN,
-    JCM_VALUE_FUNCTION
+    JCM_VALUE_FUNCTION,
+    JCM_VALUE_STRING
 };
 
 #define JCM_MACHINE_BITS 64
@@ -33,24 +47,30 @@ enum JCMOp {
     JCM_AND,
     JCM_OR,
     JCM_NOT,
+
     JCM_EQ,
     JCM_LT,
     JCM_LE,
     JCM_GT,
     JCM_GE,
+
     JCM_ADD,
     JCM_SUB,
     JCM_MUL,
     JCM_DIV,
     JCM_MOD,
+
     JCM_IF,
+
     JCM_LAMBDA,
+
     JCM_BIND,
+
     JCM_LOAD,
     JCM_STORE,
+
     JCM_INPUT,
-    JCM_OUTPUT,
-    JCM_PRINT
+    JCM_OUTPUT
 };
 
 struct JCMCoreForm {
@@ -86,8 +106,7 @@ static const struct JCMCoreForm jcm_core[] = {
     { JCM_LOAD, JCM_MEMORY, JCM_PRIMITIVE, "load", "←", 1, 1, "(← A)", 0, 0 },
     { JCM_STORE, JCM_MEMORY, JCM_PRIMITIVE, "store", "→", 2, 2, "(→ A V)", 0, 0 },
     { JCM_INPUT, JCM_IO, JCM_PRIMITIVE, "input", "↑", 0, 0, "(↑)", 0, 0 },
-    { JCM_OUTPUT, JCM_IO, JCM_PRIMITIVE, "output", "↓", 1, 1, "(↓ V)", 0, 0 },
-    { JCM_PRINT, JCM_IO, JCM_PRIMITIVE, "print", "print", 1, 1, "(print V)", 0, 0 }
+    { JCM_OUTPUT, JCM_IO, JCM_PRIMITIVE, "output", "↓", 1, 1, "(↓ V)", 0, 0 }
 };
 
 #define JCM_CORE_COUNT ((int)(sizeof(jcm_core) / sizeof(jcm_core[0])))

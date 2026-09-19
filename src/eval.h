@@ -3,10 +3,6 @@
 
 #include "ast.h"
 
-/*
- * JCMValueKind is defined in core.h.
- */
-
 struct JCMEnv;
 struct JCMFunction;
 
@@ -15,6 +11,7 @@ struct JCMValue {
 
     union {
         long number;
+        char *string;
         struct JCMFunction *function;
     } value;
 };
@@ -82,6 +79,9 @@ struct JCMValue
 jcm_value_number(long number);
 
 struct JCMValue
+jcm_value_string(const char *text);
+
+struct JCMValue
 jcm_value_function(struct JCMFunction *function);
 
 int
@@ -123,4 +123,3 @@ void
 jcm_value_print(struct JCMValue value);
 
 #endif
-

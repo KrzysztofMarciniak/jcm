@@ -4,10 +4,6 @@
 
 #include "eval.h"
 
-/* ------------------------------------------------------------------------- */
-/* String helpers                                                            */
-/* ------------------------------------------------------------------------- */
-
 static char *
 jcm_strdup(const char *s)
 {
@@ -19,7 +15,6 @@ jcm_strdup(const char *s)
 
     n = strlen(s);
     copy = (char *)malloc(n + 1);
-
     if (copy == NULL)
         return NULL;
 
@@ -27,23 +22,17 @@ jcm_strdup(const char *s)
     return copy;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Environment                                                               */
-/* ------------------------------------------------------------------------- */
-
 struct JCMEnv *
 jcm_env_new(struct JCMEnv *parent)
 {
     struct JCMEnv *env;
 
     env = (struct JCMEnv *)malloc(sizeof(struct JCMEnv));
-
     if (env == NULL)
         return NULL;
 
     env->bindings = NULL;
     env->parent = parent;
-
     return env;
 }
 
@@ -57,7 +46,6 @@ jcm_env_free(struct JCMEnv *env)
         return;
 
     binding = env->bindings;
-
     while (binding != NULL) {
         next = binding->next;
         free(binding->name);
@@ -69,11 +57,7 @@ jcm_env_free(struct JCMEnv *env)
 }
 
 int
-jcm_env_define(
-    struct JCMEnv *env,
-    const char *name,
-    struct JCMValue value
-)
+jcm_env_define(struct JCMEnv *env, const char *name, struct JCMValue value)
 {
     struct JCMBinding *binding;
 
@@ -81,12 +65,10 @@ jcm_env_define(
         return 0;
 
     binding = (struct JCMBinding *)malloc(sizeof(struct JCMBinding));
-
     if (binding == NULL)
         return 0;
 
     binding->name = jcm_strdup(name);
-
     if (binding->name == NULL) {
         free(binding);
         return 0;
@@ -95,16 +77,11 @@ jcm_env_define(
     binding->value = value;
     binding->next = env->bindings;
     env->bindings = binding;
-
     return 1;
 }
 
 int
-jcm_env_set(
-    struct JCMEnv *env,
-    const char *name,
-    struct JCMValue value
-)
+jcm_env_set(struct JCMEnv *env, const char *name, struct JCMValue value)
 {
     struct JCMEnv *current;
     struct JCMBinding *binding;
@@ -113,19 +90,15 @@ jcm_env_set(
         return 0;
 
     current = env;
-
     while (current != NULL) {
         binding = current->bindings;
-
         while (binding != NULL) {
             if (strcmp(binding->name, name) == 0) {
                 binding->value = value;
                 return 1;
             }
-
             binding = binding->next;
         }
-
         current = current->parent;
     }
 
@@ -133,11 +106,7 @@ jcm_env_set(
 }
 
 int
-jcm_env_get(
-    struct JCMEnv *env,
-    const char *name,
-    struct JCMValue *value
-)
+jcm_env_get(struct JCMEnv *env, const char *name, struct JCMValue *value)
 {
     struct JCMEnv *current;
     struct JCMBinding *binding;
@@ -146,37 +115,36 @@ jcm_env_get(
         return 0;
 
     current = env;
-
     while (current != NULL) {
         binding = current->bindings;
-
         while (binding != NULL) {
             if (strcmp(binding->name, name) == 0) {
                 *value = binding->value;
                 return 1;
             }
-
             binding = binding->next;
         }
-
         current = current->parent;
     }
 
     return 0;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Values                                                                    */
-/* ------------------------------------------------------------------------- */
-
 struct JCMValue
 jcm_value_number(long number)
 {
     struct JCMValue value;
-
     value.kind = JCM_VALUE_NUMBER;
     value.value.number = number;
+    return value;
+}
 
+struct JCMValue
+jcm_value_string(const char *text)
+{
+    struct JCMValue value;
+    value.kind = JCM_VALUE_STRING;
+    value.value.string = jcm_strdup(text);
     return value;
 }
 
@@ -184,16 +152,10 @@ struct JCMValue
 jcm_value_function(struct JCMFunction *function)
 {
     struct JCMValue value;
-
     value.kind = JCM_VALUE_FUNCTION;
     value.value.function = function;
-
     return value;
 }
-
-/* ------------------------------------------------------------------------- */
-/* Runtime                                                                   */
-/* ------------------------------------------------------------------------- */
 
 int
 jcm_runtime_init(struct JCMRuntime *runtime)
@@ -202,13 +164,11 @@ jcm_runtime_init(struct JCMRuntime *runtime)
         return 0;
 
     runtime->global = jcm_env_new(NULL);
-
     if (runtime->global == NULL)
         return 0;
 
     runtime->memory.cells = NULL;
     runtime->memory.next_address = 1;
-
     return 1;
 }
 
@@ -227,7 +187,6 @@ jcm_runtime_free(struct JCMRuntime *runtime)
     runtime->global = NULL;
 
     cell = runtime->memory.cells;
-
     while (cell != NULL) {
         next = cell->next;
         free(cell);
@@ -238,16 +197,8 @@ jcm_runtime_free(struct JCMRuntime *runtime)
     runtime->memory.next_address = 0;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Memory                                                                    */
-/* ------------------------------------------------------------------------- */
-
 int
-jcm_memory_load(
-    struct JCMMemory *memory,
-    long address,
-    struct JCMValue *value
-)
+jcm_memory_load(struct JCMMemory *memory, long address, struct JCMValue *value)
 {
     struct JCMMemoryCell *cell;
 
@@ -255,13 +206,11 @@ jcm_memory_load(
         return 0;
 
     cell = memory->cells;
-
     while (cell != NULL) {
         if (cell->address == address) {
             *value = cell->value;
             return 1;
         }
-
         cell = cell->next;
     }
 
@@ -269,11 +218,7 @@ jcm_memory_load(
 }
 
 int
-jcm_memory_store(
-    struct JCMMemory *memory,
-    long address,
-    struct JCMValue value
-)
+jcm_memory_store(struct JCMMemory *memory, long address, struct JCMValue value)
 {
     struct JCMMemoryCell *cell;
 
@@ -281,18 +226,15 @@ jcm_memory_store(
         return 0;
 
     cell = memory->cells;
-
     while (cell != NULL) {
         if (cell->address == address) {
             cell->value = value;
             return 1;
         }
-
         cell = cell->next;
     }
 
     cell = (struct JCMMemoryCell *)malloc(sizeof(struct JCMMemoryCell));
-
     if (cell == NULL)
         return 0;
 
@@ -300,79 +242,49 @@ jcm_memory_store(
     cell->value = value;
     cell->next = memory->cells;
     memory->cells = cell;
-
     return 1;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Evaluation helpers                                                       */
-/* ------------------------------------------------------------------------- */
-
 static int
-eval_number(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_number(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     (void)runtime;
     (void)env;
-
     result->kind = JCM_VALUE_NUMBER;
     result->value.number = ast->value.number;
-
     return 1;
 }
 
 static int
-eval_symbol(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_string(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     (void)runtime;
-
-    return jcm_env_get(
-        env,
-        ast->value.symbol,
-        result
-    );
+    (void)env;
+    *result = jcm_value_string(ast->value.string);
+    return result->value.string != NULL;
 }
 
 static int
-eval_args(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *args
-)
+eval_symbol(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
+{
+    (void)runtime;
+    return jcm_env_get(env, ast->value.symbol, result);
+}
+
+static int
+eval_args(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *args)
 {
     int i;
 
     for (i = 1; i < ast->value.list.count; i++) {
-        if (!jcm_eval(
-                runtime,
-                env,
-                ast->value.list.items[i],
-                &args[i - 1])) {
+        if (!jcm_eval(runtime, env, ast->value.list.items[i], &args[i - 1]))
             return 0;
-        }
     }
-
     return 1;
 }
 
 static int
-eval_binary_number(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    enum JCMOp op,
-    struct JCMValue *result
-)
+eval_binary_number(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, enum JCMOp op, struct JCMValue *result)
 {
     struct JCMValue args[2];
     long a;
@@ -380,12 +292,9 @@ eval_binary_number(
 
     if (ast->value.list.count != 3)
         return 0;
-
     if (!eval_args(runtime, env, ast, args))
         return 0;
-
-    if (args[0].kind != JCM_VALUE_NUMBER ||
-        args[1].kind != JCM_VALUE_NUMBER)
+    if (args[0].kind != JCM_VALUE_NUMBER || args[1].kind != JCM_VALUE_NUMBER)
         return 0;
 
     a = args[0].value.number;
@@ -395,42 +304,29 @@ eval_binary_number(
     case JCM_ADD:
         *result = jcm_value_number(a + b);
         return 1;
-
     case JCM_SUB:
         *result = jcm_value_number(a - b);
         return 1;
-
     case JCM_MUL:
         *result = jcm_value_number(a * b);
         return 1;
-
     case JCM_DIV:
         if (b == 0)
             return 0;
-
         *result = jcm_value_number(a / b);
         return 1;
-
     case JCM_MOD:
         if (b == 0)
             return 0;
-
         *result = jcm_value_number(a % b);
         return 1;
-
     default:
         return 0;
     }
 }
 
 static int
-eval_comparison(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    enum JCMOp op,
-    struct JCMValue *result
-)
+eval_comparison(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, enum JCMOp op, struct JCMValue *result)
 {
     struct JCMValue args[2];
     long a;
@@ -439,12 +335,9 @@ eval_comparison(
 
     if (ast->value.list.count != 3)
         return 0;
-
     if (!eval_args(runtime, env, ast, args))
         return 0;
-
-    if (args[0].kind != JCM_VALUE_NUMBER ||
-        args[1].kind != JCM_VALUE_NUMBER)
+    if (args[0].kind != JCM_VALUE_NUMBER || args[1].kind != JCM_VALUE_NUMBER)
         return 0;
 
     a = args[0].value.number;
@@ -455,23 +348,18 @@ eval_comparison(
     case JCM_EQ:
         answer = (a == b);
         break;
-
     case JCM_LT:
         answer = (a < b);
         break;
-
     case JCM_LE:
         answer = (a <= b);
         break;
-
     case JCM_GT:
         answer = (a > b);
         break;
-
     case JCM_GE:
         answer = (a >= b);
         break;
-
     default:
         return 0;
     }
@@ -481,13 +369,7 @@ eval_comparison(
 }
 
 static int
-eval_logic(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    enum JCMOp op,
-    struct JCMValue *result
-)
+eval_logic(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, enum JCMOp op, struct JCMValue *result)
 {
     struct JCMValue a;
     struct JCMValue b;
@@ -497,64 +379,38 @@ eval_logic(
     if (op == JCM_NOT) {
         if (ast->value.list.count != 2)
             return 0;
-
-        if (!jcm_eval(
-                runtime,
-                env,
-                ast->value.list.items[1],
-                &a)) {
+        if (!jcm_eval(runtime, env, ast->value.list.items[1], &a))
             return 0;
-        }
-
         if (a.kind != JCM_VALUE_NUMBER)
             return 0;
 
-        *result = jcm_value_number(
-            a.value.number == 0 ? 1 : 0
-        );
-
+        *result = jcm_value_number(a.value.number == 0 ? 1 : 0);
         return 1;
     }
 
     if (ast->value.list.count != 3)
         return 0;
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[1],
-            &a)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[1], &a))
         return 0;
-    }
-
     if (a.kind != JCM_VALUE_NUMBER)
         return 0;
 
     truth_a = a.value.number != 0;
-
     if (op == JCM_AND && !truth_a) {
         *result = jcm_value_number(0);
         return 1;
     }
-
     if (op == JCM_OR && truth_a) {
         *result = jcm_value_number(1);
         return 1;
     }
 
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[2],
-            &b)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[2], &b))
         return 0;
-    }
-
     if (b.kind != JCM_VALUE_NUMBER)
         return 0;
 
     truth_b = b.value.number != 0;
-
     if (op == JCM_AND)
         *result = jcm_value_number(truth_a && truth_b);
     else
@@ -564,53 +420,25 @@ eval_logic(
 }
 
 static int
-eval_if(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_if(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     struct JCMValue condition;
 
     if (ast->value.list.count != 4)
         return 0;
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[1],
-            &condition)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[1], &condition))
         return 0;
-    }
-
     if (condition.kind != JCM_VALUE_NUMBER)
         return 0;
 
-    if (condition.value.number != 0) {
-        return jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[2],
-            result
-        );
-    }
+    if (condition.value.number != 0)
+        return jcm_eval(runtime, env, ast->value.list.items[2], result);
 
-    return jcm_eval(
-        runtime,
-        env,
-        ast->value.list.items[3],
-        result
-    );
+    return jcm_eval(runtime, env, ast->value.list.items[3], result);
 }
 
 static int
-eval_lambda(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_lambda(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     struct JCMFunction *function;
 
@@ -618,39 +446,25 @@ eval_lambda(
 
     if (ast->value.list.count != 3)
         return 0;
-
     if (ast->value.list.items[1]->kind != JCM_AST_LIST)
         return 0;
-
     if (ast->value.list.items[1]->value.list.count != 1)
         return 0;
-
-    if (ast->value.list.items[1]->value.list.items[0]->kind
-        != JCM_AST_SYMBOL)
+    if (ast->value.list.items[1]->value.list.items[0]->kind != JCM_AST_SYMBOL)
         return 0;
 
-    function = (struct JCMFunction *)malloc(
-        sizeof(struct JCMFunction)
-    );
-
+    function = (struct JCMFunction *)malloc(sizeof(struct JCMFunction));
     if (function == NULL)
         return 0;
 
     function->lambda = ast;
     function->env = env;
-
     *result = jcm_value_function(function);
-
     return 1;
 }
 
 static int
-eval_bind(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_bind(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     const struct JCMAst *name;
     const struct JCMAst *expression;
@@ -659,13 +473,7 @@ eval_bind(
     if (ast->value.list.count != 3)
         return 0;
 
-    /*
-     * Support both:
-     *   (: x expr)
-     *   (x : expr)
-     */
-    if (ast->value.list.items[0]->kind == JCM_AST_CORE &&
-        ast->value.list.items[0]->value.op == JCM_BIND) {
+    if (ast->value.list.items[0]->kind == JCM_AST_CORE && ast->value.list.items[0]->value.op == JCM_BIND) {
         name = ast->value.list.items[1];
         expression = ast->value.list.items[2];
     } else if (ast->value.list.items[1]->kind == JCM_AST_CORE &&
@@ -678,34 +486,17 @@ eval_bind(
 
     if (name->kind != JCM_AST_SYMBOL)
         return 0;
-
-    /*
-     * Evaluate the expression in the current environment.
-     * For lambdas this naturally creates a closure over env.
-     * The binding is then installed into that same environment,
-     * allowing recursive references to resolve through the closure.
-     */
     if (!jcm_eval(runtime, env, expression, &value))
         return 0;
-
-    if (!jcm_env_define(
-            env,
-            name->value.symbol,
-            value)) {
+    if (!jcm_env_define(env, name->value.symbol, value))
         return 0;
-    }
 
     *result = value;
     return 1;
 }
 
 static int
-eval_call(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_call(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     struct JCMValue function_value;
     struct JCMFunction *function;
@@ -717,158 +508,81 @@ eval_call(
 
     if (ast->value.list.count < 1)
         return 0;
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[0],
-            &function_value)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[0], &function_value))
         return 0;
-    }
-
     if (function_value.kind != JCM_VALUE_FUNCTION)
         return 0;
 
     function = function_value.value.function;
-
     if (function == NULL || function->lambda == NULL)
         return 0;
 
     lambda = function->lambda;
-
     if (lambda->value.list.count != 3)
         return 0;
 
     parameters = lambda->value.list.items[1];
-
-    if (parameters->kind != JCM_AST_LIST ||
-        parameters->value.list.count != 1)
+    if (parameters->kind != JCM_AST_LIST || parameters->value.list.count != 1)
         return 0;
-
     if (ast->value.list.count != 2)
         return 0;
 
     parameter = parameters->value.list.items[0];
-
     if (parameter->kind != JCM_AST_SYMBOL)
         return 0;
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[1],
-            &argument)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[1], &argument))
         return 0;
-    }
 
     call_env = jcm_env_new(function->env);
-
     if (call_env == NULL)
         return 0;
 
-    if (!jcm_env_define(
-            call_env,
-            parameter->value.symbol,
-            argument)) {
+    if (!jcm_env_define(call_env, parameter->value.symbol, argument)) {
         jcm_env_free(call_env);
         return 0;
     }
 
-    /*
-     * Do not free call_env here. A closure created while evaluating
-     * the body may capture it. A proper garbage collector / reference
-     * counted environment can reclaim these environments later.
-     */
-    return jcm_eval(
-        runtime,
-        call_env,
-        lambda->value.list.items[2],
-        result
-    );
+    return jcm_eval(runtime, call_env, lambda->value.list.items[2], result);
 }
 
 static int
-eval_load(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_load(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     struct JCMValue address;
 
     if (ast->value.list.count != 2)
         return 0;
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[1],
-            &address)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[1], &address))
         return 0;
-    }
-
     if (address.kind != JCM_VALUE_NUMBER)
         return 0;
 
-    return jcm_memory_load(
-        &runtime->memory,
-        address.value.number,
-        result
-    );
+    return jcm_memory_load(&runtime->memory, address.value.number, result);
 }
 
 static int
-eval_store(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_store(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     struct JCMValue address;
     struct JCMValue value;
 
     if (ast->value.list.count != 3)
         return 0;
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[1],
-            &address)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[1], &address))
         return 0;
-    }
-
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[2],
-            &value)) {
+    if (!jcm_eval(runtime, env, ast->value.list.items[2], &value))
         return 0;
-    }
-
     if (address.kind != JCM_VALUE_NUMBER)
         return 0;
-
-    if (!jcm_memory_store(
-            &runtime->memory,
-            address.value.number,
-            value)) {
+    if (!jcm_memory_store(&runtime->memory, address.value.number, value))
         return 0;
-    }
 
     *result = value;
     return 1;
 }
 
 static int
-eval_input(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_input(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     long value;
 
@@ -877,7 +591,6 @@ eval_input(
 
     if (ast->value.list.count != 1)
         return 0;
-
     if (scanf("%ld", &value) != 1)
         return 0;
 
@@ -886,56 +599,41 @@ eval_input(
 }
 
 static int
-eval_output(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+eval_output(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     struct JCMValue value;
 
     if (ast->value.list.count != 2)
         return 0;
+    if (!jcm_eval(runtime, env, ast->value.list.items[1], &value))
+        return 0;
 
-    if (!jcm_eval(
-            runtime,
-            env,
-            ast->value.list.items[1],
-            &value)) {
+    if (value.kind == JCM_VALUE_NUMBER) {
+        printf("%ld", value.value.number);
+    } else if (value.kind == JCM_VALUE_STRING) {
+        fputs(value.value.string, stdout);
+    } else {
         return 0;
     }
-
-    if (value.kind != JCM_VALUE_NUMBER)
-        return 0;
-
-    putchar((int)value.value.number);
 
     *result = value;
     return 1;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Main evaluator                                                            */
-/* ------------------------------------------------------------------------- */
-
 int
-jcm_eval(
-    struct JCMRuntime *runtime,
-    struct JCMEnv *env,
-    const struct JCMAst *ast,
-    struct JCMValue *result
-)
+jcm_eval(struct JCMRuntime *runtime, struct JCMEnv *env, const struct JCMAst *ast, struct JCMValue *result)
 {
     enum JCMOp op;
 
-    if (runtime == NULL || env == NULL ||
-        ast == NULL || result == NULL)
+    if (runtime == NULL || env == NULL || ast == NULL || result == NULL)
         return 0;
 
     switch (ast->kind) {
     case JCM_AST_NUMBER:
         return eval_number(runtime, env, ast, result);
+
+    case JCM_AST_STRING:
+        return eval_string(runtime, env, ast, result);
 
     case JCM_AST_SYMBOL:
         return eval_symbol(runtime, env, ast, result);
@@ -953,10 +651,6 @@ jcm_eval(
     if (ast->value.list.count == 0)
         return 0;
 
-    /*
-     * Infix binding form: (x : expr)
-     * must be detected before the normal function-call path.
-     */
     if (ast->value.list.count == 3 &&
         ast->value.list.items[1]->kind == JCM_AST_CORE &&
         ast->value.list.items[1]->value.op == JCM_BIND) {
@@ -965,7 +659,6 @@ jcm_eval(
 
     if (ast->value.list.items[0]->kind == JCM_AST_CORE) {
         op = ast->value.list.items[0]->value.op;
-
         switch (op) {
         case JCM_AND:
         case JCM_OR:
@@ -977,26 +670,14 @@ jcm_eval(
         case JCM_LE:
         case JCM_GT:
         case JCM_GE:
-            return eval_comparison(
-                runtime,
-                env,
-                ast,
-                op,
-                result
-            );
+            return eval_comparison(runtime, env, ast, op, result);
 
         case JCM_ADD:
         case JCM_SUB:
         case JCM_MUL:
         case JCM_DIV:
         case JCM_MOD:
-            return eval_binary_number(
-                runtime,
-                env,
-                ast,
-                op,
-                result
-            );
+            return eval_binary_number(runtime, env, ast, op, result);
 
         case JCM_IF:
             return eval_if(runtime, env, ast, result);
@@ -1025,42 +706,25 @@ jcm_eval(
 }
 
 int
-jcm_eval_program(
-    struct JCMRuntime *runtime,
-    const struct JCMAst *program,
-    struct JCMValue *result
-)
+jcm_eval_program(struct JCMRuntime *runtime, const struct JCMAst *program, struct JCMValue *result)
 {
     struct JCMValue value;
     int i;
 
-    if (runtime == NULL ||
-        program == NULL ||
-        result == NULL)
+    if (runtime == NULL || program == NULL || result == NULL)
         return 0;
-
     if (program->kind != JCM_AST_PROGRAM)
         return 0;
 
     value = jcm_value_number(0);
-
     for (i = 0; i < program->value.list.count; i++) {
-        if (!jcm_eval(
-                runtime,
-                runtime->global,
-                program->value.list.items[i],
-                &value)) {
+        if (!jcm_eval(runtime, runtime->global, program->value.list.items[i], &value))
             return 0;
-        }
     }
 
     *result = value;
     return 1;
 }
-
-/* ------------------------------------------------------------------------- */
-/* Value printing                                                            */
-/* ------------------------------------------------------------------------- */
 
 void
 jcm_value_print(struct JCMValue value)
@@ -1072,6 +736,10 @@ jcm_value_print(struct JCMValue value)
 
     case JCM_VALUE_BOOLEAN:
         printf("%ld\n", value.value.number ? 1L : 0L);
+        break;
+
+    case JCM_VALUE_STRING:
+        printf("%s\n", value.value.string);
         break;
 
     case JCM_VALUE_FUNCTION:
