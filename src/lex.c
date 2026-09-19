@@ -161,7 +161,6 @@ string_append(char **buffer, size_t *capacity, size_t *length, int c)
     return 1;
 }
 
-/* Read a single-quoted UTF-8 byte string. */
 static int
 read_string(struct JCMLexer *lexer, struct JCMToken *token)
 {
@@ -179,7 +178,7 @@ read_string(struct JCMLexer *lexer, struct JCMToken *token)
         return 0;
     buffer[0] = '\0';
 
-    lexer_advance(lexer); /* opening quote */
+    lexer_advance(lexer);
     while (lexer->current != EOF) {
         c = lexer->current;
         if (!escaped && c == '\'') {
@@ -250,6 +249,8 @@ read_symbol(struct JCMLexer *lexer, struct JCMToken *token)
 static int
 lex_one(struct JCMLexer *lexer, struct JCMToken *token)
 {
+    int c;
+
     token_init(token);
     skip_space_and_comments(lexer);
     token->line = lexer->line;
@@ -273,12 +274,15 @@ lex_one(struct JCMLexer *lexer, struct JCMToken *token)
     if (lexer->current == '\'')
         return read_string(lexer, token);
 
-    if (is_ascii_digit(lexer->current) ||
-        ((lexer->current == '-' || lexer->current == '+') &&
-         is_ascii_digit((c = fgetc(lexer->input))))) {
+    if (is_ascii_digit(lexer->current))
+        return read_number(lexer, token);
+
+    if (lexer->current == '-' || lexer->current == '+') {
+        c = fgetc(lexer->input);
         if (c != EOF)
             ungetc(c, lexer->input);
-        return read_number(lexer, token);
+        if (is_ascii_digit(c))
+            return read_number(lexer, token);
     }
 
     return read_symbol(lexer, token);
@@ -302,7 +306,9 @@ jcm_lex(FILE *input, struct JCMToken **tokens, int *count)
     capacity = 32;
     length = 0;
 
-    result = (struct JCMToken *)malloc(sizeof(struct JCMToken) * (size_t)capacity);
+    result = (struct JCMToken *)malloc(
+        sizeof(struct JCMToken) * (size_t)capacity
+    );
     if (result == NULL)
         return 0;
 
@@ -319,9 +325,11 @@ jcm_lex(FILE *input, struct JCMToken **tokens, int *count)
 
         if (length >= capacity) {
             struct JCMToken *new_result;
+
             capacity *= 2;
             new_result = (struct JCMToken *)realloc(
-                result, sizeof(struct JCMToken) * (size_t)capacity
+                result,
+                sizeof(struct JCMToken) * (size_t)capacity
             );
             if (new_result == NULL) {
                 free(token.text);
