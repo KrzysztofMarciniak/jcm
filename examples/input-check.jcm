@@ -1,17 +1,22 @@
-; Read a number, store it in n, and print whether it is even.
-; Example:
-;   n = 99
-;   99 is not even -> 0
+; Read a number and print whether it is even.
+;
+; Input is read from stdin, not from a command-line argument:
+;   printf '99\n' | ./jcm --eval examples/input-check.jcm
+;
+; The result is printed as a numeric boolean:
+;   even? 0
+;
+; Note: ↓ writes one character (a byte), so it is not a decimal-number
+; printer. For example, (↓ 99) writes the character 'c'.
 
-(print : (λ (value) (↓ value)))
 (n : (↑))
 
-; print "n=" then the input value
+; Print "even? " followed by 1 for even or 0 for odd.
+(↓ 101) ; 'e'
+(↓ 118) ; 'v'
+(↓ 101) ; 'e'
 (↓ 110) ; 'n'
-(↓ 61)  ; '='
+(↓ 63)  ; '?'
 (↓ 32)  ; ' '
-(print n)
-(↓ 10)  ; newline
-
-; print 1 if even, 0 if odd
-(print (if (= (% n 2) 0) 1 0))
+(↓ (+ 48 (if (= (% n 2) 0) 1 0)))
+(↓ 10)
