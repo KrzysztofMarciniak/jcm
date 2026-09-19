@@ -1,8 +1,11 @@
                               J C M
-                  	   John McCarthy 
+                  	   ((J)ohn Mc(C)arthy (M)inimal lisp) 
 
 JCM is a small Lisp and Turing-machine language.  It uses Polish
 notation for computation, memory, input, output, and native compilation.
+
+Motivation: 
+          I wanted a programming language small enough to comfortably write with a pen and paper.
 
 John McCarthy:
 
