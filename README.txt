@@ -1,5 +1,5 @@
                               J C M
-                 John McCarthy Minimal Lisp
+                 	   John McCarthy 
 
 JCM is a small Lisp and Turing-machine language.  It uses Polish
 notation for computation, memory, input, output, and native compilation.
