@@ -1,159 +1,34 @@
 # JCM
 
-JCM (John McCarthy) is a minimal Lisp language using Polish
-notation for computation, memory, I/O, and native compilation.
+JCM (John McCarthy) is a minimal Lisp language using Polish notation for computation, memory, I/O, and native compilation.
 
-# CORE
+## Core forms
 
-Logic:
+Arithmetic includes `+`, `-`, `*`, `/`, and `%`. Mathematical iteration forms use Unicode symbols:
 
-```
-(∧ A B)
-(∨ A B)
-(¬ A)
-```
-
-Comparison:
-
-```
-(= A B)
-(< A B)
-(≤ A B)
-(> A B)
-(≥ A B)
+```lisp
+(∑ I START END BODY)       ; inclusive integer summation
+(∏ I START END BODY)       ; inclusive integer product
+(∫ F START END STEPS)      ; numerical integral using trapezoids
 ```
 
-Arithmetic:
+Examples:
 
-```
-(+ A B)
-(- A B)
-(* A B)
-(/ A B)
-(% A B)
-```
-
-Control:
-
-```
-(if C T E)
+```lisp
+(∑ i 1 5 i)                         ; 15
+(∑ i 1 5 (* i i))                   ; 55
+(∏ i 1 5 i)                         ; 120
+(∫ (λ (x) (* x x)) 0 10 10)         ; 335 (integer result)
 ```
 
-Functions:
+`∑` and `∏` bind their first argument for each integer in the inclusive range. A reversed range returns the identity (`0` for summation and `1` for product). `∫` takes a one-argument function, integer bounds, and a positive number of trapezoidal steps. Since JCM currently has integer values, sample points are rounded to the nearest integer and the final result is rounded to the nearest integer.
 
-```
-(λ (X) E)
-(X : E)
-```
+## Running
 
-Memory:
-
-```
-(← A)
-(→ A V)
-```
-
-I/O:
-
-```
-(↑)      ; read a decimal number from stdin
-(↓ V)    ; print a number or string
-```
-
-# VALUES
-
-Numbers are machine values.
-
-Boolean results are:
-
-```
-0
-1
-```
-
-0 is false. 1 is true.
-
-# SYNTAX
-
-JCM uses Polish notation:
-
-```
-(+ 2 (* 3 4))
-```
-
-Comments begin with `;`:
-
-```
-; comment
-```
-
-Strings use `'` and may contain escaped characters such as `\n`:
-
-```
-(↓ 'hello world')
-(↓ 'line one\nline two')
-```
-
-Expressions may be nested arbitrarily.
-
-# SEMANTICS
-
-`if` evaluates only the selected branch.
-
-`λ` creates a function.
-
-`:` binds a name to an expression. Bindings may be recursive.
-
-`←` reads memory.
-
-`→` writes memory.
-
-`↑` reads a decimal number from stdin.
-
-`↓` prints either a number or a string literal.
-
-Comparison operations return `0` or `1`.
-
-Arithmetic operates on machine values.
-
-# COMPUTATION
-
-JCM provides conditional evaluation, functions, recursion, mutable
-memory, arithmetic, comparison, and string output.
-
-These mechanisms provide general computation.
-
-# EXAMPLE
-
-```
-(↓ 'Hello, world!')
-(↓ 10)
-```
-
-# RUNNING EXAMPLES
-
-After building the interpreter:
-
-```
+```sh
 make
+make test
 ./jcm --eval examples/hello-world.jcm
-./jcm --eval examples/factorial.jcm
-./jcm --eval examples/memory-demo.jcm
-printf '99\n' | ./jcm --eval examples/input-check.jcm
 ```
 
-The first example prints `Hello, world!`. The factorial example prints
-`120`. The memory demo prints `12`. The input example prints the evenness
-check for the supplied number.
-
-# FILES
-
-Source files use `.jcm`.
-
-Reference implementation: C99.
-
-Target: x86_64 Linux.
-
-# LICENSE
-
-See LICENSE.
+See `LICENSE` for licensing information.
