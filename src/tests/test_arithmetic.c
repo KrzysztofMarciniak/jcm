@@ -3,8 +3,11 @@
 int
 main(void)
 {
-    expect_program_result("; comment\n(+ (* 2 3) (- 9 4))", 11);
-    expect_program_result("(+ 2 (* 3 (+ 4 1)))", 17);
+    expect_program_result("(+ 2 3)", 5);
+    expect_program_result("(- 9 4)", 5);
+    expect_program_result("(* 6 7)", 42);
+    expect_program_result("(/ 22 4)", 5);
+    expect_program_result("(% 17 5)", 2);
 
     return 0;
 }

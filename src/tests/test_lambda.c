@@ -3,8 +3,8 @@
 int
 main(void)
 {
-    expect_input_result("(↑)", "42\n", 42);
-    expect_output_result("(↓ 65)", 65, "A");
+    expect_program_result("((λ (x) (+ x 3)) 4)", 7);
+    expect_program_result("(x : 4) ((λ (y) (+ x y)) 3)", 7);
 
     return 0;
 }

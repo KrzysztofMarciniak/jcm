@@ -3,11 +3,12 @@
 int
 main(void)
 {
-    expect_program_result("(+ 2 3)", 5);
-    expect_program_result("(- 9 4)", 5);
-    expect_program_result("(* 6 7)", 42);
-    expect_program_result("(/ 22 4)", 5);
-    expect_program_result("(% 17 5)", 2);
+    expect_program_result("(x : 5) x", 5);
+    expect_program_result("(: y 9) y", 9);
+    expect_program_result(
+        "(fact : (λ (n) (if (= n 0) 1 (* n (fact (- n 1)))))) (fact 5)",
+        120
+    );
 
     return 0;
 }

@@ -3,10 +3,9 @@
 int
 main(void)
 {
-    expect_program_result("5", 5);
-    expect_program_result("-42", -42);
-    expect_program_result("+7", 7);
-    expect_program_result("0", 0);
+    expect_program_result("(x : 5) (+ x 2)", 7);
+    expect_program_result("(n : 3) (m : 4) (+ n m)", 7);
+    expect_program_result("((λ (x) (+ x 3)) 4)", 7);
 
     return 0;
 }

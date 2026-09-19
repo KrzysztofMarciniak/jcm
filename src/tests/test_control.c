@@ -3,12 +3,9 @@
 int
 main(void)
 {
-    expect_program_result("(= 5 5)", 1);
-    expect_program_result("(= 5 6)", 0);
-    expect_program_result("(< 3 7)", 1);
-    expect_program_result("(≤ 7 7)", 1);
-    expect_program_result(">( 8 2)", 1);
-    expect_program_result("(≥ 9 9)", 1);
+    expect_program_result("(if 1 7 9)", 7);
+    expect_program_result("(if 0 7 9)", 9);
+    expect_program_result("(if 0 (/ 1 0) 5)", 5);
 
     return 0;
 }

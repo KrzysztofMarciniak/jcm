@@ -3,9 +3,8 @@
 int
 main(void)
 {
-    expect_program_result("(x : 5) (+ x 2)", 7);
-    expect_program_result("(n : 3) (m : 4) (+ n m)", 7);
-    expect_program_result("((λ (x) (+ x 3)) 4)", 7);
+    expect_program_result("; comment\n(+ (* 2 3) (- 9 4))", 11);
+    expect_program_result("(+ 2 (* 3 (+ 4 1)))", 17);
 
     return 0;
 }

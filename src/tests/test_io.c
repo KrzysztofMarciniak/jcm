@@ -3,9 +3,8 @@
 int
 main(void)
 {
-    expect_program_result("(if 1 7 9)", 7);
-    expect_program_result("(if 0 7 9)", 9);
-    expect_program_result("(if 0 (/ 1 0) 5)", 5);
+    expect_input_result("(↑)", "42\n", 42);
+    expect_output_result("(↓ 65)", 65, "A");
 
     return 0;
 }
