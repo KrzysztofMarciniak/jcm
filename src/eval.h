@@ -2,6 +2,7 @@
 #define JCM_EVAL_H
 
 #include "ast.h"
+#include "input.h"
 
 struct JCMEnv;
 struct JCMFunction;
@@ -55,25 +56,13 @@ void
 jcm_env_free(struct JCMEnv *env);
 
 int
-jcm_env_define(
-    struct JCMEnv *env,
-    const char *name,
-    struct JCMValue value
-);
+jcm_env_define(struct JCMEnv *env, const char *name, struct JCMValue value);
 
 int
-jcm_env_set(
-    struct JCMEnv *env,
-    const char *name,
-    struct JCMValue value
-);
+jcm_env_set(struct JCMEnv *env, const char *name, struct JCMValue value);
 
 int
-jcm_env_get(
-    struct JCMEnv *env,
-    const char *name,
-    struct JCMValue *value
-);
+jcm_env_get(struct JCMEnv *env, const char *name, struct JCMValue *value);
 
 struct JCMValue
 jcm_value_number(long number);
