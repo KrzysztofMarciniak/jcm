@@ -3,17 +3,6 @@
 
 #include <string.h>
 
-/*
- * JCM core language definition.
- *
- * Reference implementation:
- *     C89
- *
- * Target:
- *     x86_64 Linux
- */
-
-/* Categories */
 enum JCMCategory {
     JCM_LOGIC,
     JCM_COMPARISON,
@@ -25,25 +14,21 @@ enum JCMCategory {
     JCM_IO
 };
 
-/* Form kinds */
 enum JCMFormKind {
     JCM_PRIMITIVE,
     JCM_SPECIAL_FORM
 };
 
-/* Value kinds */
 enum JCMValueKind {
     JCM_VALUE_NUMBER,
     JCM_VALUE_BOOLEAN,
     JCM_VALUE_FUNCTION
 };
 
-/* JCM machine values are signed 64-bit values on x86_64. */
 #define JCM_MACHINE_BITS 64
 #define JCM_FALSE 0
 #define JCM_TRUE  1
 
-/* Operators */
 enum JCMOp {
     JCM_AND,
     JCM_OR,
@@ -64,7 +49,8 @@ enum JCMOp {
     JCM_LOAD,
     JCM_STORE,
     JCM_INPUT,
-    JCM_OUTPUT
+    JCM_OUTPUT,
+    JCM_PRINT
 };
 
 struct JCMCoreForm {
@@ -80,7 +66,6 @@ struct JCMCoreForm {
     int special_evaluation;
 };
 
-/* Core language */
 static const struct JCMCoreForm jcm_core[] = {
     { JCM_AND, JCM_LOGIC, JCM_PRIMITIVE, "and", "∧", 2, 2, "(∧ A B)", 1, 0 },
     { JCM_OR, JCM_LOGIC, JCM_PRIMITIVE, "or", "∨", 2, 2, "(∨ A B)", 1, 0 },
@@ -101,7 +86,8 @@ static const struct JCMCoreForm jcm_core[] = {
     { JCM_LOAD, JCM_MEMORY, JCM_PRIMITIVE, "load", "←", 1, 1, "(← A)", 0, 0 },
     { JCM_STORE, JCM_MEMORY, JCM_PRIMITIVE, "store", "→", 2, 2, "(→ A V)", 0, 0 },
     { JCM_INPUT, JCM_IO, JCM_PRIMITIVE, "input", "↑", 0, 0, "(↑)", 0, 0 },
-    { JCM_OUTPUT, JCM_IO, JCM_PRIMITIVE, "output", "↓", 1, 1, "(↓ V)", 0, 0 }
+    { JCM_OUTPUT, JCM_IO, JCM_PRIMITIVE, "output", "↓", 1, 1, "(↓ V)", 0, 0 },
+    { JCM_PRINT, JCM_IO, JCM_PRIMITIVE, "print", "print", 1, 1, "(print V)", 0, 0 }
 };
 
 #define JCM_CORE_COUNT ((int)(sizeof(jcm_core) / sizeof(jcm_core[0])))
@@ -126,12 +112,10 @@ static const struct JCMCoreForm * JCM_CORE_UNUSED
 jcm_core_find(const char *symbol)
 {
     int i;
-
     for (i = 0; i < JCM_CORE_COUNT; i++) {
         if (strcmp(jcm_core[i].symbol, symbol) == 0)
             return &jcm_core[i];
     }
-
     return NULL;
 }
 
@@ -139,12 +123,10 @@ static const struct JCMCoreForm * JCM_CORE_UNUSED
 jcm_core_find_op(enum JCMOp op)
 {
     int i;
-
     for (i = 0; i < JCM_CORE_COUNT; i++) {
         if (jcm_core[i].op == op)
             return &jcm_core[i];
     }
-
     return NULL;
 }
 

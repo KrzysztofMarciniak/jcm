@@ -56,8 +56,9 @@ Memory:
 I/O:
 
 ```
-(↑)
-(↓ V)
+(↑)       ; read a number from stdin
+(↓ V)     ; print a number in decimal
+(print V) ; convert a number to one output character
 ```
 
 # VALUES
@@ -101,9 +102,12 @@ Expressions may be nested arbitrarily.
 
 `→` writes memory.
 
-`↑` reads from stdin.
+`↑` reads a decimal number from stdin.
 
-`↓` writes to stdout.
+`↓` writes a number in decimal form.
+
+`print` converts a numeric value to one byte/character using `putchar`.
+For example, `(↓ 99)` prints `99`, while `(print 99)` prints `c`.
 
 Comparison operations return `0` or `1`.
 
@@ -123,19 +127,18 @@ defined using the core language.
 
 ```
 ; Hello World
-
-(↓ 72)
-(↓ 101)
-(↓ 108)
-(↓ 108)
-(↓ 111)
-(↓ 32)
-(↓ 87)
-(↓ 111)
-(↓ 114)
-(↓ 108)
-(↓ 100)
-(↓ 10)
+(print 72)
+(print 101)
+(print 108)
+(print 108)
+(print 111)
+(print 32)
+(print 87)
+(print 111)
+(print 114)
+(print 108)
+(print 100)
+(print 10)
 ```
 
 # RUNNING EXAMPLES
@@ -147,12 +150,12 @@ make
 ./jcm --eval examples/hello-world.jcm
 ./jcm --eval examples/factorial.jcm
 ./jcm --eval examples/memory-demo.jcm
-./jcm --eval examples/input-check.jcm
+printf '99\n' | ./jcm --eval examples/input-check.jcm
 ```
 
 The first example prints "Hello World". The factorial example prints
-`120`. The memory demo prints `12`. The input example reads a number from
-stdin and prints `1` when it is positive and even, otherwise `0`.
+`120`. The memory demo prints `12`. The input example prints `even? 0`
+for input `99`, and `even? 1` for input `100`.
 
 These examples collectively exercise the full language surface: logic,
 comparison, arithmetic, control flow, functions, binding, memory, and I/O.
