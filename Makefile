@@ -14,9 +14,10 @@ SRC := \
 OBJ := $(SRC:.c=.o)
 
 TEST_DIR := src/tests
-TEST_SRC := $(wildcard $(TEST_DIR)/test_*.c)
-TEST_BIN := $(TEST_SRC:.c=)
+TEST_SUPPORT_SRC := $(TEST_DIR)/test_support.c
 TEST_SUPPORT_OBJ := $(TEST_DIR)/test_support.o
+TEST_SRC := $(filter-out $(TEST_SUPPORT_SRC),$(wildcard $(TEST_DIR)/test_*.c))
+TEST_BIN := $(TEST_SRC:.c=)
 TEST_CORE_OBJ := src/ast.o src/lex.o src/eval.o
 
 PREFIX ?= /usr/local
@@ -32,7 +33,7 @@ $(TARGET): $(OBJ)
 src/%.o: src/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-$(TEST_SUPPORT_OBJ): $(TEST_DIR)/test_support.c $(TEST_DIR)/test_support.h src/ast.h src/eval.h
+$(TEST_SUPPORT_OBJ): $(TEST_SUPPORT_SRC) $(TEST_DIR)/test_support.h src/ast.h src/eval.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 $(TEST_DIR)/test_%: $(TEST_DIR)/test_%.c $(TEST_SUPPORT_OBJ) $(TEST_CORE_OBJ) $(TEST_DIR)/test_support.h
