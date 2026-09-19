@@ -1,5 +1,6 @@
 #include "include2.jcm"
 
-(↓ 'include1 loaded')
 (↓ '\n')
+(↓ 'value loaded from include2.jcm = ')
 (↓ value)
+(↓ '\n')
