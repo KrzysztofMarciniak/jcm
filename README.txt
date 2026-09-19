@@ -1,5 +1,5 @@
                               J C M
-                 	   John McCarthy 
+                  	   John McCarthy 
 
 JCM is a small Lisp and Turing-machine language.  It uses Polish
 notation for computation, memory, input, output, and native compilation.
@@ -10,7 +10,7 @@ John McCarthy:
 
 
 -----------------------------------------------------------------------
-                               CONTENTS
+                                CONTENTS
 -----------------------------------------------------------------------
 
     1.  Core operations
@@ -23,7 +23,7 @@ John McCarthy:
 
 
 -----------------------------------------------------------------------
-                           1. CORE OPERATIONS
+                            1. CORE OPERATIONS
 -----------------------------------------------------------------------
 
 LOGIC
@@ -67,9 +67,13 @@ INPUT AND OUTPUT
     (↑)                     read a decimal number from standard input
     (↓ V)                   print a number or a string
 
+SOURCE INCLUDES
+
+    #include "filename"    include another JCM source file
+
 
 -----------------------------------------------------------------------
-                        2. VALUES AND SYNTAX
+                         2. VALUES AND SYNTAX
 -----------------------------------------------------------------------
 
 Numbers are machine values.  Boolean results are represented by numbers:
@@ -87,6 +91,9 @@ Comments begin with a semicolon and continue to the end of the line:
     ; this entire line is a comment
     (+ 2 3)                  ; comments may follow an expression
 
+Include directives are handled before parsing, so they can appear at the top
+of a file and expand to the contents of another JCM source file.
+
 Strings are enclosed in single quotes.  Escaped characters are allowed:
 
     (↓ 'hello world!')
@@ -102,7 +109,7 @@ can be recursive.  Comparisons and logic return 0 or 1.
 
 
 -----------------------------------------------------------------------
-                           3. SMALL EXAMPLES
+                            3. SMALL EXAMPLES
 -----------------------------------------------------------------------
 
 HELLO, WORLD
@@ -167,7 +174,7 @@ A binding can contain another expression:
 
 
 -----------------------------------------------------------------------
-                       4. FUNCTIONS AND RECURSION
+                        4. FUNCTIONS AND RECURSION
 -----------------------------------------------------------------------
 
 ANONYMOUS FUNCTIONS
@@ -370,6 +377,7 @@ Run source files with:
     ./jcm --eval examples/hello-world.jcm
     ./jcm --eval examples/factorial.jcm
     ./jcm --eval examples/memory-demo.jcm
+    ./jcm --eval examples/include1.jcm
 
 Provide decimal input through standard input:
 
@@ -377,12 +385,16 @@ Provide decimal input through standard input:
 
 The source-file extension is .jcm.
 
+Include directives work in source files before parsing:
+
+    #include "include2.jcm"
+
 The reference implementation is written in C99.
 The current target is x86_64 Linux.
 
 
 -----------------------------------------------------------------------
-                              LICENSE
+                               LICENSE
 -----------------------------------------------------------------------
 
 See LICENSE.
