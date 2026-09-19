@@ -1,2 +1,14 @@
 jcm
 *.o
+src/tests/test_arithmetic
+src/tests/test_binding
+src/tests/test_comparison
+src/tests/test_control
+src/tests/test_io
+src/tests/test_lambda
+src/tests/test_logic
+src/tests/test_memory
+src/tests/test_numbers
+src/tests/test_programs
+src/tests/test_syntax
+
