@@ -3,17 +3,7 @@
 
 #include <string.h>
 
-/*
- * JCM core language definition.
- *
- * Reference implementation:
- *     C89
- *
- * Target:
- *     x86_64 Linux
- */
-
-/* Categories */
+/* JCM's built-in operations and their metadata. */
 enum JCMCategory {
     JCM_LOGIC,
     JCM_COMPARISON,
@@ -25,13 +15,11 @@ enum JCMCategory {
     JCM_IO
 };
 
-/* Form kinds */
 enum JCMFormKind {
     JCM_PRIMITIVE,
     JCM_SPECIAL_FORM
 };
 
-/* Value kinds */
 enum JCMValueKind {
     JCM_VALUE_NUMBER,
     JCM_VALUE_BOOLEAN,
@@ -47,28 +35,21 @@ enum JCMOp {
     JCM_AND,
     JCM_OR,
     JCM_NOT,
-
     JCM_EQ,
     JCM_LT,
     JCM_LE,
     JCM_GT,
     JCM_GE,
-
     JCM_ADD,
     JCM_SUB,
     JCM_MUL,
     JCM_DIV,
     JCM_MOD,
-
     JCM_IF,
-
     JCM_LAMBDA,
-
     JCM_BIND,
-
     JCM_LOAD,
     JCM_STORE,
-
     JCM_INPUT,
     JCM_OUTPUT
 };
@@ -127,25 +108,36 @@ static const struct JCMCoreForm jcm_core[] = {
 #define JCM_CORE_UNUSED
 #endif
 
-static const struct JCMCoreForm * JCM_CORE_UNUSED
+/* These are static because the core table is header-local in each module. */
+static const struct JCMCoreForm *
+jcm_core_find(const char *symbol) JCM_CORE_UNUSED;
+
+static const struct JCMCoreForm *
 jcm_core_find(const char *symbol)
 {
     int i;
+
     for (i = 0; i < JCM_CORE_COUNT; i++) {
         if (strcmp(jcm_core[i].symbol, symbol) == 0)
             return &jcm_core[i];
     }
+
     return NULL;
 }
 
-static const struct JCMCoreForm * JCM_CORE_UNUSED
+static const struct JCMCoreForm *
+jcm_core_find_op(enum JCMOp op) JCM_CORE_UNUSED;
+
+static const struct JCMCoreForm *
 jcm_core_find_op(enum JCMOp op)
 {
     int i;
+
     for (i = 0; i < JCM_CORE_COUNT; i++) {
         if (jcm_core[i].op == op)
             return &jcm_core[i];
     }
+
     return NULL;
 }
 
