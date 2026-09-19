@@ -1,4 +1,11 @@
 ; factorial using recursion, conditionals, arithmetic, and binding
+; A function named fact is defined with one argument, n.
+; It returns 1 when n is 0 (the base case of the recursion).
+; Otherwise, it multiplies n by the factorial of n - 1.
 (fact : (λ (n) (if (= n 0) 1 (* n (fact (- n 1))))))
+
+; Evaluate the factorial of 5.
 (↓ (fact 5))
-(↓ 10)
+
+; The previous expression evaluates to 120.
+(↓ 120)
