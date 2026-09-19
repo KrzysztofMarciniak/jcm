@@ -1,6 +1,11 @@
-/* JCM number tests: numeric literals and machine values */
+#include "test_support.h"
 
-int main(void)
+int
+main(void)
 {
-    return 1;
+    expect_program_result("(→ 5 12) (← 5)", 12);
+    expect_program_result("(→ 5 12) (→ 5 18) (← 5)", 18);
+    expect_program_failure("(← 999)");
+
+    return 0;
 }

@@ -1,6 +1,10 @@
-/* JCM logic tests: ∧, ∨, ¬ */
+#include "test_support.h"
 
-int main(void)
+int
+main(void)
 {
-    return 1;
+    expect_program_result("((λ (x) (+ x 3)) 4)", 7);
+    expect_program_result("(x : 4) ((λ (y) (+ x y)) 3)", 7);
+
+    return 0;
 }
