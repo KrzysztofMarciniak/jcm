@@ -1,16 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "ast.h"
-
-/*
- * Native x86_64 code generation.
- *
- * This backend supports the constant-expression subset directly and lowers
- * runtime-dependent forms to external runtime helper calls.  That keeps the
- * generated assembly valid while allowing the complete JCM language surface to
- * be represented without silently producing incorrect code.
- */
 
 static void
 codegen_error(const char *message)
@@ -22,38 +12,22 @@ static const char *
 runtime_symbol(enum JCMOp op)
 {
     switch (op) {
-    case JCM_AND:
-        return "jcm_runtime_and";
-    case JCM_OR:
-        return "jcm_runtime_or";
-    case JCM_NOT:
-        return "jcm_runtime_not";
-    case JCM_EQ:
-        return "jcm_runtime_eq";
-    case JCM_LT:
-        return "jcm_runtime_lt";
-    case JCM_LE:
-        return "jcm_runtime_le";
-    case JCM_GT:
-        return "jcm_runtime_gt";
-    case JCM_GE:
-        return "jcm_runtime_ge";
-    case JCM_IF:
-        return "jcm_runtime_if";
-    case JCM_LAMBDA:
-        return "jcm_runtime_lambda";
-    case JCM_BIND:
-        return "jcm_runtime_bind";
-    case JCM_LOAD:
-        return "jcm_runtime_load";
-    case JCM_STORE:
-        return "jcm_runtime_store";
-    case JCM_INPUT:
-        return "jcm_runtime_input";
-    case JCM_OUTPUT:
-        return "jcm_runtime_output";
-    default:
-        return "jcm_runtime_generic";
+    case JCM_AND:    return "jcm_runtime_and";
+    case JCM_OR:     return "jcm_runtime_or";
+    case JCM_NOT:    return "jcm_runtime_not";
+    case JCM_EQ:     return "jcm_runtime_eq";
+    case JCM_LT:     return "jcm_runtime_lt";
+    case JCM_LE:     return "jcm_runtime_le";
+    case JCM_GT:     return "jcm_runtime_gt";
+    case JCM_GE:     return "jcm_runtime_ge";
+    case JCM_IF:     return "jcm_runtime_if";
+    case JCM_LAMBDA: return "jcm_runtime_lambda";
+    case JCM_BIND:   return "jcm_runtime_bind";
+    case JCM_LOAD:   return "jcm_runtime_load";
+    case JCM_STORE:  return "jcm_runtime_store";
+    case JCM_INPUT:  return "jcm_runtime_input";
+    case JCM_OUTPUT: return "jcm_runtime_output";
+    default:         return "jcm_runtime_generic";
     }
 }
 
@@ -71,11 +45,72 @@ emit_runtime_expression(FILE *out, enum JCMOp op)
     return 1;
 }
 
+static int emit_expression(FILE *out, const struct JCMAst *ast);
+
+static int
+emit_binary_arithmetic(
+    FILE *out,
+    const struct JCMAst *left,
+    const struct JCMAst *right,
+    enum JCMOp op
+)
+{
+    /*
+     * Evaluate both operands before using either result:
+     *
+     *     left  -> push
+     *     right -> push
+     *     pop right
+     *     pop left
+     *
+     * This works for nested expressions and does not use callee-saved
+     * registers such as %rbx.
+     */
+    if (!emit_expression(out, left))
+        return 0;
+    fprintf(out, "    push %%rax\n");
+
+    if (!emit_expression(out, right))
+        return 0;
+    fprintf(out, "    push %%rax\n");
+
+    fprintf(out, "    pop %%rcx\n");
+    fprintf(out, "    pop %%rax\n");
+
+    switch (op) {
+    case JCM_ADD:
+        fprintf(out, "    add %%rcx, %%rax\n");
+        return 1;
+
+    case JCM_SUB:
+        fprintf(out, "    sub %%rcx, %%rax\n");
+        return 1;
+
+    case JCM_MUL:
+        fprintf(out, "    imul %%rcx, %%rax\n");
+        return 1;
+
+    case JCM_DIV:
+        fprintf(out, "    cqo\n");
+        fprintf(out, "    idiv %%rcx\n");
+        return 1;
+
+    case JCM_MOD:
+        fprintf(out, "    cqo\n");
+        fprintf(out, "    idiv %%rcx\n");
+        fprintf(out, "    mov %%rdx, %%rax\n");
+        return 1;
+
+    default:
+        return 0;
+    }
+}
+
 static int
 emit_expression(FILE *out, const struct JCMAst *ast)
 {
-    struct JCMAst *left;
-    struct JCMAst *right;
+    const struct JCMAst *left;
+    const struct JCMAst *right;
     enum JCMOp op;
 
     if (ast == NULL)
@@ -84,109 +119,52 @@ emit_expression(FILE *out, const struct JCMAst *ast)
     switch (ast->kind) {
     case JCM_AST_NUMBER:
         return emit_number(out, ast->value.number);
+
     case JCM_AST_STRING:
-        /* We cannot materialize arbitrary strings in a bare assembly stub.
-         * The runtime helper is expected to handle them when linked. */
+        /*
+         * Strings are not currently represented in native assembly.
+         * Return zero for the constant backend.
+         */
         fprintf(out, "    xor %%eax, %%eax\n");
         return 1;
+
     case JCM_AST_LIST:
         break;
+
     default:
         codegen_error("expression is not currently representable");
         return 0;
     }
 
-    if (ast->value.list.count == 0)
+    if (ast->value.list.count == 0) {
+        codegen_error("cannot generate an empty expression");
         return 0;
+    }
 
-    if (ast->value.list.items[0]->kind != JCM_AST_CORE) {
+    if (ast->value.list.items[0] == NULL ||
+        ast->value.list.items[0]->kind != JCM_AST_CORE) {
         codegen_error("function calls require the runtime backend");
         return 0;
     }
 
     op = ast->value.list.items[0]->value.op;
 
-    switch (op) {
-    case JCM_ADD:
-    case JCM_SUB:
-    case JCM_MUL:
-    case JCM_DIV:
-    case JCM_MOD:
-        break;
-    default:
+    if (op != JCM_ADD &&
+        op != JCM_SUB &&
+        op != JCM_MUL &&
+        op != JCM_DIV &&
+        op != JCM_MOD)
         return emit_runtime_expression(out, op);
-    }
 
     if (ast->value.list.count != 3) {
-        codegen_error("native arithmetic currently requires two operands");
+        codegen_error("arithmetic expressions require two operands");
         return 0;
     }
 
     left = ast->value.list.items[1];
     right = ast->value.list.items[2];
 
-    switch (op) {
-    case JCM_ADD:
-        if (!emit_expression(out, left))
-            return 0;
-        fprintf(out, "    push %%rax\n");
-        if (!emit_expression(out, right))
-            return 0;
-        fprintf(out, "    mov %%rax, %%rbx\n");
-        fprintf(out, "    pop %%rax\n");
-        fprintf(out, "    add %%rbx, %%rax\n");
-        return 1;
-
-    case JCM_SUB:
-        if (!emit_expression(out, left))
-            return 0;
-        fprintf(out, "    push %%rax\n");
-        if (!emit_expression(out, right))
-            return 0;
-        fprintf(out, "    mov %%rax, %%rbx\n");
-        fprintf(out, "    pop %%rax\n");
-        fprintf(out, "    sub %%rbx, %%rax\n");
-        return 1;
-
-    case JCM_MUL:
-        if (!emit_expression(out, left))
-            return 0;
-        fprintf(out, "    push %%rax\n");
-        if (!emit_expression(out, right))
-            return 0;
-        fprintf(out, "    mov %%rax, %%rbx\n");
-        fprintf(out, "    pop %%rax\n");
-        fprintf(out, "    imul %%rbx, %%rax\n");
-        return 1;
-
-    case JCM_DIV:
-        if (!emit_expression(out, left))
-            return 0;
-        fprintf(out, "    push %%rax\n");
-        if (!emit_expression(out, right))
-            return 0;
-        fprintf(out, "    mov %%rax, %%rbx\n");
-        fprintf(out, "    pop %%rax\n");
-        fprintf(out, "    cqo\n");
-        fprintf(out, "    idiv %%rbx\n");
-        return 1;
-
-    case JCM_MOD:
-        if (!emit_expression(out, left))
-            return 0;
-        fprintf(out, "    push %%rax\n");
-        if (!emit_expression(out, right))
-            return 0;
-        fprintf(out, "    mov %%rax, %%rbx\n");
-        fprintf(out, "    pop %%rax\n");
-        fprintf(out, "    cqo\n");
-        fprintf(out, "    idiv %%rbx\n");
-        fprintf(out, "    mov %%rdx, %%rax\n");
-        return 1;
-
-    default:
-        return 0;
-    }
+    return emit_binary_arithmetic(out, left, right, op);
 }
 
 int
@@ -205,6 +183,7 @@ jcm_codegen(FILE *out, const struct JCMAst *program)
     fprintf(out, ".text\n");
     fprintf(out, ".globl main\n");
     fprintf(out, ".type main, @function\n");
+
     fprintf(out, ".extern jcm_runtime_and\n");
     fprintf(out, ".extern jcm_runtime_or\n");
     fprintf(out, ".extern jcm_runtime_not\n");
@@ -221,6 +200,7 @@ jcm_codegen(FILE *out, const struct JCMAst *program)
     fprintf(out, ".extern jcm_runtime_input\n");
     fprintf(out, ".extern jcm_runtime_output\n");
     fprintf(out, ".extern jcm_runtime_generic\n");
+
     fprintf(out, "main:\n");
     fprintf(out, "    push %%rbp\n");
     fprintf(out, "    mov %%rsp, %%rbp\n");

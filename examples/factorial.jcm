@@ -1,11 +1,118 @@
-; factorial using recursion, conditionals, arithmetic, and binding
-; A function named fact is defined with one argument, n.
-; It returns 1 when n is 0 (the base case of the recursion).
-; Otherwise, it multiplies n by the factorial of n - 1.
-(fact : (λ (n) (if (= n 0) 1 (* n (fact (- n 1))))))
+; ============================================================
+; Factorial using:
+;   - Recursion
+;   - Conditionals
+;   - Arithmetic
+;   - Binding
+; ============================================================
 
-; Evaluate the factorial of 5.
-(↓ (fact 5))
 
-; The previous expression evaluates to 120.
-(↓ 120)
+; ------------------------------------------------------------
+; Step 1: Define a function called "fact"
+;
+; The function takes one argument:
+;   n = the number whose factorial we want to calculate
+;
+; λ (lambda) creates the function.
+; ------------------------------------------------------------
+
+(fact :
+    (λ (n)
+
+
+        ; ----------------------------------------------------
+        ; Step 2: Check the base case
+        ;
+        ; If n is equal to 0,
+        ; return 1.
+        ;
+        ; This stops the recursion.
+        ; ----------------------------------------------------
+
+        (if
+            (= n 0)
+
+            1
+
+
+            ; ------------------------------------------------
+            ; Step 3: Recursive case
+            ;
+            ; If n is NOT 0:
+            ;
+            ;   n × fact(n - 1)
+            ;
+            ; First subtract 1 from n:
+            ;   (- n 1)
+            ;
+            ; Then calculate its factorial:
+            ;   (fact (- n 1))
+            ;
+            ; Finally multiply by n:
+            ;   (* n (fact (- n 1)))
+            ; ------------------------------------------------
+
+            (* n
+               (fact
+                   (- n 1)
+               )
+            )
+        )
+    )
+)
+
+
+; ============================================================
+; Step 4: Evaluate the factorial of 5
+;
+; We call:
+;
+;   fact 5
+;
+; The ↓ means print.
+; ============================================================
+
+(↓
+    (fact 5)
+)
+
+
+; ============================================================
+; Step 5: What happens during recursion?
+;
+; fact 5
+;   = 5 × fact 4
+;
+; fact 4
+;   = 4 × fact 3
+;
+; fact 3
+;   = 3 × fact 2
+;
+; fact 2
+;   = 2 × fact 1
+;
+; fact 1
+;   = 1 × fact 0
+;
+; fact 0
+;   = 1          ← base case
+;
+;
+; Then the results return back up:
+;
+;   fact 0 = 1
+;   fact 1 = 1 × 1       = 1
+;   fact 2 = 2 × 1       = 2
+;   fact 3 = 3 × 2       = 6
+;   fact 4 = 4 × 6       = 24
+;   fact 5 = 5 × 24      = 120
+;
+;
+; Final result:
+;
+;   5! = 120
+; ============================================================
+(↓ '\n') ; newline
+
+
