@@ -138,6 +138,25 @@ defined using the core language.
 (↓ 10)
 ```
 
+# RUNNING EXAMPLES
+
+After building the interpreter:
+
+```
+make
+./jcm --eval examples/hello-world.jcm
+./jcm --eval examples/factorial.jcm
+./jcm --eval examples/memory-demo.jcm
+./jcm --eval examples/input-check.jcm
+```
+
+The first example prints "Hello World". The factorial example prints
+`120`. The memory demo prints `12`. The input example reads a number from
+stdin and prints `1` when it is positive and even, otherwise `0`.
+
+These examples collectively exercise the full language surface: logic,
+comparison, arithmetic, control flow, functions, binding, memory, and I/O.
+
 # FILES
 
 Source files use `.jcm`.
@@ -149,4 +168,3 @@ Target: x86_64 Linux.
 # LICENSE
 
 See LICENSE.
-

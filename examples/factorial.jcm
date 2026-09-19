@@ -1,0 +1,3 @@
+; factorial using recursion, conditionals, arithmetic, and binding
+(fact : (λ (n) (if (= n 0) 1 (* n (fact (- n 1))))))
+(fact 5)

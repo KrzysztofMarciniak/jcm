@@ -1,0 +1,4 @@
+; memory demo: store a value, mutate it, then print the result
+(→ 7 3)
+(→ 8 (+ (← 7) 9))
+(↓ (← 8))
