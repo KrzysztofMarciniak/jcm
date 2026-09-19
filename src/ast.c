@@ -391,23 +391,3 @@ jcm_ast_print(const struct JCMAst *ast, int indent)
         break;
     }
 }
-
-void
-jcm_tokens_free(struct JCMToken *tokens, int count)
-{
-    int i;
-
-    if (tokens == NULL)
-        return;
-
-    for (i = 0; i < count; i++)
-        free(tokens[i].text);
-
-    free(tokens);
-}
-
-void
-jcm_lex_free(struct JCMToken *tokens, int count)
-{
-    jcm_tokens_free(tokens, count);
-}
