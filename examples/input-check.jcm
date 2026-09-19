@@ -1,9 +1,12 @@
 ; Read a number and print whether it is even.
-; Example:
-;   printf '99\n' | ./jcm --eval examples/input-check.jcm
-; result: even? 0
-
 (n : (↑))
-(↓ 'even? ')
-(↓ (if (= (% n 2) 0) 1 0))
-(↓ 10)
+
+(↓ 'n = ')
+(↓ n)
+(↓ '\n')
+
+(↓ (if (= (% n 2) 0)
+    'n is even'
+    'n is not even'))
+
+(↓ '\n')
