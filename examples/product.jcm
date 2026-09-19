@@ -1,0 +1,3 @@
+; product demo: calculate five factorial with product notation
+(↓ (∏ i 1 5 i))
+(↓ 10)

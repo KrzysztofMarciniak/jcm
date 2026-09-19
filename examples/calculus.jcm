@@ -1,0 +1,7 @@
+; calculus demo: sum, product, and trapezoidal integral
+(↓ (∑ i 1 5 i))
+(↓ 10)
+(↓ (∏ i 1 5 i))
+(↓ 10)
+(↓ (∫ (λ (x) (* x x)) 0 10 10))
+(↓ 10)

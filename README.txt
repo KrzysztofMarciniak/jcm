@@ -14,6 +14,13 @@ Arithmetic includes `+`, `-`, `*`, `/`, and `%`. Mathematical iteration forms us
 
 Examples:
 
+```sh
+./jcm --eval examples/summation.jcm
+./jcm --eval examples/product.jcm
+./jcm --eval examples/integral.jcm
+./jcm --eval examples/calculus.jcm
+```
+
 ```lisp
 (∑ i 1 5 i)                         ; 15
 (∑ i 1 5 (* i i))                   ; 55
@@ -21,7 +28,7 @@ Examples:
 (∫ (λ (x) (* x x)) 0 10 10)         ; 335 (integer result)
 ```
 
-`∑` and `∏` bind their first argument for each integer in the inclusive range. A reversed range returns the identity (`0` for summation and `1` for product). `∫` takes a one-argument function, integer bounds, and a positive number of trapezoidal steps. Since JCM currently has integer values, sample points are rounded to the nearest integer and the final result is rounded to the nearest integer.
+`∑` and `∏` bind their first argument for each integer in the inclusive range. A reversed range returns the identity (`0` for summation and `1` for product). `∫` takes a one-argument function, integer bounds, and a positive number of trapezoidal steps. Since JCM currently has integer values, sample points are rounded by integer arithmetic and the final result is an integer.
 
 ## Running
 

@@ -1,0 +1,4 @@
+; integral demo: approximate the integral of x from 0 to 10
+; Ten trapezoidal steps produce 50.
+(↓ (∫ (λ (x) x) 0 10 10))
+(↓ 10)
