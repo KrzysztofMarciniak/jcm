@@ -1,48 +1,55 @@
-CC = cc
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2
+CC ?= cc
+CPPFLAGS ?= -Isrc -D_POSIX_C_SOURCE=200809L
+CFLAGS ?= -std=c99 -pedantic -Wall -Wextra -O2
 
-TARGET = jcm
+TARGET := jcm
 
-SRC = \
+SRC := \
 	src/main.c \
 	src/ast.c \
 	src/lex.c \
 	src/eval.c \
 	src/codegen.c
 
-OBJ = $(SRC:.c=.o)
+OBJ := $(SRC:.c=.o)
 
-TEST_DIR = src/tests
-TEST_SRC = $(wildcard $(TEST_DIR)/test_*.c)
-TEST_BIN = $(TEST_SRC:.c=)
+TEST_DIR := src/tests
+TEST_SRC := $(wildcard $(TEST_DIR)/test_*.c)
+TEST_BIN := $(TEST_SRC:.c=)
+TEST_SUPPORT_OBJ := $(TEST_DIR)/test_support.o
+TEST_CORE_OBJ := src/ast.o src/lex.o src/eval.o
 
-PREFIX = /usr/local
-BINDIR = $(PREFIX)/bin
+PREFIX ?= /usr/local
+BINDIR := $(PREFIX)/bin
+
+.PHONY: all test run install clean
 
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 src/%.o: src/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-$(TEST_DIR)/test_%: $(TEST_DIR)/test_%.c $(filter-out src/main.o,$(OBJ))
-	$(CC) $(CFLAGS) -o $@ $< $(filter-out src/main.o,$(OBJ))
+$(TEST_SUPPORT_OBJ): $(TEST_DIR)/test_support.c $(TEST_DIR)/test_support.h src/ast.h src/eval.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(TEST_DIR)/test_%: $(TEST_DIR)/test_%.c $(TEST_SUPPORT_OBJ) $(TEST_CORE_OBJ) $(TEST_DIR)/test_support.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $< $(TEST_SUPPORT_OBJ) $(TEST_CORE_OBJ) $(LDLIBS)
 
 test: $(TEST_BIN)
-	@for test in $(TEST_BIN); do \
+	@set -e; for test in $(TEST_BIN); do \
 		echo "==> $$test"; \
-		./$$test || exit 1; \
+		./$$test; \
 	done
 
 run: $(TARGET)
 	./$(TARGET)
 
 install: $(TARGET)
-	mkdir -p $(BINDIR)
-	cp $(TARGET) $(BINDIR)/$(TARGET)
+	install -d $(DESTDIR)$(BINDIR)
+	install -m 0755 $(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
 
 clean:
-	rm -f $(TARGET) $(TEST_BIN) $(OBJ)
-
+	rm -f $(TARGET) $(TEST_BIN) $(OBJ) $(TEST_SUPPORT_OBJ)
