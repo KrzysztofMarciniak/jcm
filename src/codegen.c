@@ -16,8 +16,7 @@
  *   - binary operations evaluate left, save it, evaluate right, restore left,
  *     and then combine the values
  *
- * Anything that needs runtime state (variables, memory, control flow, I/O,
- * functions, or binding) is rejected with a clear message.
+ * Anything that needs runtime state is rejected with a clear message.
  */
 
 static void
@@ -26,6 +25,39 @@ codegen_error(const char *message)
     fprintf(stderr, "jcm: codegen: %s\n", message);
 }
 
+/* Print a string as a readable JCM single-quoted literal. */
+static void
+print_jcm_string(FILE *out, const char *text)
+{
+    const unsigned char *p;
+
+    fprintf(out, "'");
+    for (p = (const unsigned char *)text; *p != '\0'; p++) {
+        switch (*p) {
+        case '\n':
+            fprintf(out, "\\n");
+            break;
+        case '\r':
+            fprintf(out, "\\r");
+            break;
+        case '\t':
+            fprintf(out, "\\t");
+            break;
+        case '\\':
+            fprintf(out, "\\\\");
+            break;
+        case '\'':
+            fprintf(out, "\\'");
+            break;
+        default:
+            fputc(*p, out);
+            break;
+        }
+    }
+    fprintf(out, "'");
+}
+
+/* Print an AST back in a compact, source-like JCM form. */
 static void
 print_jcm_ast(FILE *out, const struct JCMAst *ast)
 {
@@ -42,6 +74,10 @@ print_jcm_ast(FILE *out, const struct JCMAst *ast)
         fprintf(out, "%lld", ast->value.number);
         break;
 
+    case JCM_AST_STRING:
+        print_jcm_string(out, ast->value.string);
+        break;
+
     case JCM_AST_SYMBOL:
         fprintf(out, "%s", ast->value.symbol);
         break;
@@ -55,15 +91,6 @@ print_jcm_ast(FILE *out, const struct JCMAst *ast)
         break;
 
     case JCM_AST_LIST:
-        fprintf(out, "(");
-        for (i = 0; i < ast->value.list.count; i++) {
-            if (i > 0)
-                fprintf(out, " ");
-            print_jcm_ast(out, ast->value.list.items[i]);
-        }
-        fprintf(out, ")");
-        break;
-
     case JCM_AST_PROGRAM:
         fprintf(out, "(");
         for (i = 0; i < ast->value.list.count; i++) {
@@ -84,7 +111,6 @@ emit_source_comment(FILE *out, const struct JCMAst *ast)
     fprintf(out, "\n");
 }
 
-/* Emit a constant as an immediate value in %rax. */
 static int
 emit_number(FILE *out, long long number)
 {
@@ -92,11 +118,6 @@ emit_number(FILE *out, long long number)
     return 1;
 }
 
-/*
- * Emit one expression.
- *
- * Convention: every successful expression leaves its result in %rax.
- */
 static int
 emit_expression(FILE *out, const struct JCMAst *ast)
 {
@@ -132,8 +153,17 @@ emit_expression(FILE *out, const struct JCMAst *ast)
     }
 
     op = ast->value.list.items[0]->value.op;
+
+    /* Only arithmetic forms are supported by this native backend. */
+    if (op != JCM_ADD && op != JCM_SUB && op != JCM_MUL &&
+        op != JCM_DIV && op != JCM_MOD) {
+        fprintf(out, "# This JCM form needs runtime support.\n");
+        codegen_error("operation requires the JCM runtime");
+        return 0;
+    }
+
     if (ast->value.list.count != 3) {
-        fprintf(out, "# This native backend only handles binary arithmetic.\n");
+        fprintf(out, "# Native arithmetic requires exactly two operands.\n");
         codegen_error("native arithmetic currently requires two operands");
         return 0;
     }
@@ -141,18 +171,6 @@ emit_expression(FILE *out, const struct JCMAst *ast)
     left = ast->value.list.items[1];
     right = ast->value.list.items[2];
 
-    /*
-     * Binary arithmetic follows the same easy pattern for every operator:
-     *
-     *   evaluate left  -> %rax
-     *   push %rax
-     *   evaluate right -> %rax
-     *   copy right to %rbx
-     *   pop left into %rax
-     *   combine values
-     *
-     * In other words, this is how JCM arithmetic is translated into assembly.
-     */
     fprintf(out, "# Evaluate the left operand and keep it on the stack.\n");
     if (!emit_expression(out, left))
         return 0;
@@ -187,25 +205,17 @@ emit_expression(FILE *out, const struct JCMAst *ast)
         return 1;
 
     case JCM_MOD:
-        fprintf(out, "# left % right\n");
+        fprintf(out, "# left %% right\n");
         fprintf(out, "    cqo\n");
         fprintf(out, "    idiv %%rbx\n");
         fprintf(out, "    mov %%rdx, %%rax\n");
         return 1;
 
     default:
-        fprintf(out, "# This operation still needs the runtime backend.\n");
-        codegen_error("operation requires the JCM runtime");
         return 0;
     }
 }
 
-/*
- * Emit a complete program.
- *
- * Top-level expressions are emitted in source order. The final expression's
- * value is returned by main as the process exit status.
- */
 int
 jcm_codegen(FILE *out, const struct JCMAst *program)
 {
@@ -232,7 +242,6 @@ jcm_codegen(FILE *out, const struct JCMAst *program)
         fprintf(out, "    xor %%eax, %%eax\n");
     } else {
         for (i = 0; i < program->value.list.count; i++) {
-            emit_source_comment(out, program->value.list.items[i]);
             if (!emit_expression(out, program->value.list.items[i])) {
                 fprintf(out, "# Code generation failed; return an error status.\n");
                 fprintf(out, "    mov $1, %%eax\n");
