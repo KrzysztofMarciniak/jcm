@@ -1,3 +1,17 @@
-; read a number, then print 1 if it is even and positive, else 0
+; Read a number, store it in n, and print whether it is even.
+; Example:
+;   n = 99
+;   99 is not even -> 0
+
+(print : (λ (value) (↓ value)))
 (n : (↑))
-(↓ (if (∧ (= (% n 2) 0) (> n 0)) 1 0))
+
+; print "n=" then the input value
+(↓ 110) ; 'n'
+(↓ 61)  ; '='
+(↓ 32)  ; ' '
+(print n)
+(↓ 10)  ; newline
+
+; print 1 if even, 0 if odd
+(print (if (= (% n 2) 0) 1 0))
