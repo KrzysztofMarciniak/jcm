@@ -4,8 +4,30 @@
 JCM is a small Lisp and Turing-machine language.  It uses Polish
 notation for computation, memory, input, output, and native compilation.
 
-Motivation: 
-          I wanted a programming language small enough to comfortably write with a pen and paper.
+Motivation:
+
+JCM was designed around a simple constraint: the language should be small enough to write and reason about entirely with pen and paper. Mathematics and pseudocode provide useful tools for describing computation, but I found neither sufficiently expressive and concise at the same time. JCM is my attempt to bridge that gap: to provide a usable programming language with simple abstractions for memory, functions, and I/O, while keeping the language tiny enough to reason about without electronics.
+
+For example, working with dynamically allocated memory in C involves explicit allocation, pointers, and deallocation:
+
+```c
+int *memory = malloc(2 * sizeof(int));
+if (memory == NULL) return 1;
+memory[0] = 3;
+memory[1] = memory[0] + 9;
+printf("%d\n", memory[1]);
+free(memory);
+```
+
+In JCM, the same computation can be expressed using its simple memory model:
+
+```lisp
+(→ 7003 3) ; on address 7003, save value 3
+(→ 7009 (+ (← 7003) 9)) ; On address 7009, save solution to 7003(3) + 9
+(↓ (← 7009)) ; print the value stored at address 7009(12)
+```
+
+The point is not that one notation is objectively better than another. The JCM notation is simply the representation that best fits how I want to think about programs. Different programmers may naturally prefer different representations and syntax.
 
 John McCarthy:
 
