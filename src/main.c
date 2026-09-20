@@ -121,6 +121,51 @@ is_output_expression(const struct JCMAst *ast)
            ast->value.list.items[0]->value.op == JCM_OUTPUT;
 }
 
+/* Check errors that used to become the unhelpful "evaluation failed". */
+static int
+validate_ast(const struct JCMAst *ast)
+{
+    int i;
+
+    if (ast == NULL)
+        return 1;
+
+    if (ast->kind != JCM_AST_LIST && ast->kind != JCM_AST_PROGRAM)
+        return 1;
+
+    if (ast->kind == JCM_AST_LIST) {
+        if (ast->value.list.count == 0) {
+            fprintf(stderr, "jcm: line %d, column %d: empty expression\n",
+                    ast->line, ast->column);
+            return 0;
+        }
+
+        if (ast->value.list.items[0]->kind == JCM_AST_CORE) {
+            const struct JCMCoreForm *form;
+            int arguments;
+
+            form = jcm_core_find_op(ast->value.list.items[0]->value.op);
+            arguments = ast->value.list.count - 1;
+            if (form != NULL &&
+                (arguments < form->min_args ||
+                 (form->max_args >= 0 && arguments > form->max_args))) {
+                fprintf(stderr,
+                        "jcm: line %d, column %d: '%s' has %d argument%s; "
+                        "correct definition is %s\n",
+                        ast->line, ast->column, form->symbol, arguments,
+                        arguments == 1 ? "" : "s", form->syntax);
+                return 0;
+            }
+        }
+    }
+
+    for (i = 0; i < ast->value.list.count; i++) {
+        if (!validate_ast(ast->value.list.items[i]))
+            return 0;
+    }
+    return 1;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -166,13 +211,18 @@ main(int argc, char **argv)
     ok = jcm_lex(prepared, &tokens, &token_count);
     fclose(prepared);
     if (!ok) {
-        fprintf(stderr, "jcm: lexical error\n");
+        fprintf(stderr, "jcm: lexical error (check the reported line and column)\n");
         return 1;
     }
     ast = NULL;
     ok = jcm_ast_parse(tokens, token_count, &ast);
     if (!ok) {
-        fprintf(stderr, "jcm: syntax error\n");
+        fprintf(stderr, "jcm: syntax error (check parentheses and the reported line)\n");
+        jcm_lex_free(tokens, token_count);
+        return 1;
+    }
+    if (!validate_ast(ast)) {
+        jcm_ast_free(ast);
         jcm_lex_free(tokens, token_count);
         return 1;
     }
