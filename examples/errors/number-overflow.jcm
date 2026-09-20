@@ -1,0 +1,2 @@
+; This literal is larger than a signed 64-bit integer.
+9223372036854775808

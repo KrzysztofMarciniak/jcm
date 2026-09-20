@@ -1,0 +1,2 @@
+; Arithmetic operators require numeric operands.
+(+ 'text' 1)

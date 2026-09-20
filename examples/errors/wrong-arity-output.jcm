@@ -1,0 +1,2 @@
+; `↓` requires exactly one value to print.
+(↓ 1 2)

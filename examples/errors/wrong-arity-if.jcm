@@ -1,0 +1,2 @@
+; `if` requires a condition, a true branch, and a false branch.
+(if 1 2)
